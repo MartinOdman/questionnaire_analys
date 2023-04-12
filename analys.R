@@ -1,0 +1,169 @@
+
+#load library
+library(readr)
+library(ggplot2)
+library(cowplot)
+
+#load data ====================================================================
+dat <- read_csv("data/Datamall.csv")
+
+#Create functions
+BinToDec <- function(x) 
+  sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
+
+#Clean up data
+dat[dat$F2 == 1963, names(dat) == "F2"] <- 2023-1963 #Change birthyear to age
+
+#specify factor variable level and label
+dat$ID <- factor(dat$ID)
+dat$F1 <- factor(dat$F1, levels = c(1,2,3,4), labels = c("Male", "Female", "Other", "NoResponse"), exclude = 999)
+
+dat$F3 <- factor(dat$F3, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
+dat$F4 <- factor(dat$F4, levels = c(1,2,3,4,5), labels = c("Happ", "CI", "SoundGen", "CombApp", "None"), exclude = 999)
+dat$F5 <- factor(dat$F5, levels = c(1,2,3), labels = c("bilat", "R", "L"), exclude = 999)
+
+dat$F6[dat$F6 == 999] <- NA
+dat$F7[dat$F7 == 999] <- NA
+dat$F8[dat$F8 == 999] <- NA
+dat$F9[dat$F9 == 999] <- NA
+
+dat$F18[dat$F18 == 999] <- NA
+dat$F19[dat$F19 == 999] <- NA
+dat$F20[dat$F20 == 999] <- NA
+
+dat$F22_1[dat$F22_1 == 999] <- NA
+dat$F22_2[dat$F22_2 == 999] <- NA
+dat$F22_3[dat$F22_3 == 999] <- NA
+dat$F22_4[dat$F22_4 == 999] <- NA
+dat$F22_5[dat$F22_5 == 999] <- NA
+dat$F22_6[dat$F22_6 == 999] <- NA
+dat$F22_7[dat$F22_7 == 999] <- NA
+
+dat$F24[dat$F24 == 999] <- NA
+dat$F25[dat$F25 == 999] <- NA
+dat$F26[dat$F26 == 999] <- NA
+
+dat$F28_1[dat$F28_1 == 999] <- NA
+dat$F28_2[dat$F28_2 == 999] <- NA
+dat$F28_3[dat$F28_3 == 999] <- NA
+dat$F28_4[dat$F28_4 == 999] <- NA
+dat$F28_5[dat$F28_5 == 999] <- NA
+dat$F28_6[dat$F28_6 == 999] <- NA
+dat$F28_7[dat$F28_7 == 999] <- NA
+
+
+dat$F10 <- factor(dat$F10, levels = c(1,2), labels = c("constant", "occasional"))
+
+dat$F11 <- factor(dat$F11, levels = c(1,2,3,4,5,6,7,8,9), labels = c("R", "L", "BothR", "BothL", "Both", "Head", "Other", "dk", "multiple" ), exclude = 999)
+dat$F12 <- factor(dat$F12, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
+dat$F13 <- factor(dat$F13, levels = c(1,2,3,4,5,6), labels = c("tone", "noise", "music", "crickets", "other", "multiple"), exclude = 999)
+dat$F14 <- factor(dat$F14, levels = c(1,2,3,4), labels = c("High", "Mid", "Low", "dk"))
+dat$F15 <- factor(dat$F15, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
+dat$F16 <- factor(dat$F16, levels = c(1,2,3,4,5), labels = c("Never", "Seldom", "Sometimes", "Usually", "Always"), exclude = 999)
+dat$F17 <- factor(dat$F17, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
+
+dat$F21 <- factor(dat$F21, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
+dat$F22 <- factor(dat$F22, levels = c(1,2,3,4,5,6,7), labels = c("noise", "nature", "surrounding", "music", "speech", "other", "multiple"), exclude = 999)
+dat$F23 <- factor(dat$F23, levels = c(1,2,3,4,5,6), labels = c("speaker", "headphone", "ha", "soundgen", "other", "multiple"), exclude = 999)
+
+dat$F27 <- factor(dat$F27, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
+dat$F28 <- factor(dat$F28, levels = c(1,2,3,4,5,6,7), labels = c("noise", "nature", "surrounding", "music", "speech", "other", "multiple"), exclude = 999)
+dat$F29 <- factor(dat$F29, levels = c(1,2,3,4,5,6), labels = c("speaker", "headphone", "ha", "soundgen", "other", "multiple"), exclude = 999)
+
+
+#Rename variables
+names(dat)[names(dat) == "F1"] <- "sex"
+names(dat)[names(dat) == "F3"] <- "hearing"
+names(dat)[names(dat) == "F4"] <- "device"
+names(dat)[names(dat) == "F5"] <- "whatdevice"
+names(dat)[names(dat) == "F6"] <- "ha.date"
+names(dat)[names(dat) == "F7"] <- "ha.use.days"
+names(dat)[names(dat) == "F8"] <- "ha.hours.day"
+names(dat)[names(dat) == "F9"] <- "first.tin.date"
+names(dat)[names(dat) == "F10"] <- "tin.con.occ"
+names(dat)[names(dat) == "F11"] <- "tin.lat"
+names(dat)[names(dat) == "F12"] <- "tin.loud.varies"
+names(dat)[names(dat) == "F13"] <- "tin.sounds.like"
+names(dat)[names(dat) == "F14"] <- "tin.pitch"
+names(dat)[names(dat) == "F15"] <- "tin.reduce.env"
+names(dat)[names(dat) == "F16"] <- "sound.tolerance"
+names(dat)[names(dat) == "F17"] <- "sound.worse.tin"
+
+names(dat)[names(dat) == "F18"] <- "sleep.lo"
+names(dat)[names(dat) == "F19"] <- "sleep.aw"
+names(dat)[names(dat) == "F20"] <- "sleep.an"
+names(dat)[names(dat) == "F21"] <- "sleep.lb"
+names(dat)[names(dat) == "F22"] <- "sleep.lb.type"
+names(dat)[names(dat) == "F23"] <- "sleep.lb.source"
+
+names(dat)[names(dat) == "F24"] <- "home.lo"
+names(dat)[names(dat) == "F25"] <- "home.aw"
+names(dat)[names(dat) == "F26"] <- "home.an"
+names(dat)[names(dat) == "F27"] <- "home.lb"
+names(dat)[names(dat) == "F28"] <- "home.lb.type"
+names(dat)[names(dat) == "F29"] <- "home.lb.source"
+
+#Create new variables =========================================================
+dat$tin.lat.sum <- dat$F11_1 + dat$F11_2 + dat$F11_3 + dat$F11_4 + dat$F11_5 + dat$F11_6 + dat$F11_7 + dat$F11_8
+dat$tin.lat.recode <- (paste(dat$F11_1, dat$F11_2, dat$F11_3, dat$F11_4, dat$F11_5, dat$F11_6, dat$F11_7, dat$F11_8, sep=""))
+
+dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22_5 + dat$F22_6
+
+dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
+
+#Analysis =====================================================================
+
+# 1 - Vilken kategori av ljud, presenterad från vilken ljudgivare används för ljudberikning av personer med tinnitus
+
+#Grupperad stapel?
+table(dat$sleep.lb)
+table(dat$sleep.lb.type)
+table(dat$sleep.lb.type.sum)
+
+table(dat$home.lb)
+table(dat$home.lb.type)
+table(dat$home.lb.type.sum)
+
+# 2 - Finns det samband mellan högre/lägre besvärsgrad och användning av ljudberikning?
+t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+
+an.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) + 
+  geom_boxplot() +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Annoyance (NRS)")+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20))
+
+aw.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) + 
+  geom_boxplot() +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Awareness (NRS)")+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20))
+
+lo.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) + 
+  geom_boxplot() +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Loudness (NRS)")+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20))
+  #guides(fill=guide_legend(title=NULL))+
+  #scale_fill_manual(values=c("#7FC97F", "#BEAED4"), 
+   #                 name="Använder ljudberikning",
+    #                breaks=c("Yes", "No"),
+    #                labels=c("Ja", "Nej"))
+
+plot_grid(an.plot, aw.plot, lo.plot, ncol = 3, nrow = 1, labels = c("A", "B", "C"))
+
+t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
+
+# 3 - Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
+table(dat$device, dat$sleep.lb)
+chisq.test(dat$device, dat$sleep.lb)
+
+table(dat$device, dat$home.lb)
+chisq.test(dat$device, dat$home.lb)
+
