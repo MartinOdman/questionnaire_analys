@@ -111,9 +111,9 @@ dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22
 
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
-#Analysis =====================================================================
-
-# 1 - Vilken kategori av ljud, presenterad från vilken ljudgivare används för ljudberikning av personer med tinnitus
+# Analysis
+# Fråga 1 =====================================================================
+# Vilken kategori av ljud, presenterad från vilken ljudgivare används för ljudberikning av personer med tinnitus
 
 #Grupperad stapel?
 table(dat$sleep.lb)
@@ -124,43 +124,96 @@ table(dat$home.lb)
 table(dat$home.lb.type)
 table(dat$home.lb.type.sum)
 
-# 2 - Finns det samband mellan högre/lägre besvärsgrad och användning av ljudberikning?
-t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+# Fråga 2 =====================================================================
+# Finns det samband mellan högre/lägre besvärsgrad och användning av ljudberikning? 
 
-an.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) + 
-  geom_boxplot() +
+# Test..
+t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
+
+#Create plots
+an.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) + 
+  geom_boxplot(lwd = 0.75) +
   scale_fill_brewer(palette="Accent")+
   xlab("")+
   ylab("Tinnitus Annoyance (NRS)")+
+  ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20))
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
 
-aw.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) + 
-  geom_boxplot() +
+aw.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) + 
+  geom_boxplot(lwd = 0.75) +
   scale_fill_brewer(palette="Accent")+
   xlab("")+
   ylab("Tinnitus Awareness (NRS)")+
+  ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20))
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
 
-lo.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) + 
-  geom_boxplot() +
+lo.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) + 
+  geom_boxplot(lwd = 0.75) +
   scale_fill_brewer(palette="Accent")+
   xlab("")+
   ylab("Tinnitus Loudness (NRS)")+
+  ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20))
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
   #guides(fill=guide_legend(title=NULL))+
   #scale_fill_manual(values=c("#7FC97F", "#BEAED4"), 
    #                 name="Använder ljudberikning",
     #                breaks=c("Yes", "No"),
     #                labels=c("Ja", "Nej"))
 
-plot_grid(an.plot, aw.plot, lo.plot, ncol = 3, nrow = 1, labels = c("A", "B", "C"))
+an.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.an, fill = home.lb)) + 
+  geom_boxplot(lwd = 0.75) +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Annoyance (NRS)")+
+  ylim(0,100)+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
 
-t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
+aw.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.aw, fill = home.lb)) + 
+  geom_boxplot(lwd = 0.75) +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Awareness (NRS)")+
+  ylim(0,100)+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
 
-# 3 - Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
+lo.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.lo, fill = home.lb)) + 
+  geom_boxplot(lwd = 0.75) +
+  scale_fill_brewer(palette="Accent")+
+  xlab("")+
+  ylab("Tinnitus Loudness (NRS)")+
+  ylim(0,100)+
+  theme_minimal()+
+  theme(legend.position="none", text = element_text(size = 20),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))
+#guides(fill=guide_legend(title=NULL))+
+#scale_fill_manual(values=c("#7FC97F", "#BEAED4"), 
+#                 name="Använder ljudberikning",
+#                breaks=c("Yes", "No"),
+#                labels=c("Ja", "Nej"))
+
+plot_grid(an.sleep.plot, aw.sleep.plot, lo.sleep.plot, 
+          an.home.plot, aw.home.plot, lo.home.plot, 
+          ncol = 3, nrow = 2, labels = c("A", "B", "C", "D", "E", "F"))
+
+# Fråga 3 =====================================================================
+# Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
 table(dat$device, dat$sleep.lb)
 chisq.test(dat$device, dat$sleep.lb)
 
