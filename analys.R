@@ -157,6 +157,10 @@ home.cc <- dat %>%
 sleep.cc <- na.omit(sleep.cc)
 home.cc <- na.omit(home.cc)
 
+#Table for proportion?
+#sleep.cc.tab <- tableby(data = sleep.cc, sleep.lb.type ~ sleep.lb.source)
+#summary(sleep.cc.tab, text = TRUE)
+
 # Stacked bars. NB!! - hardcoded colors to match
 sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source)) + 
   geom_bar(position="stack", stat="identity")+
