@@ -2,6 +2,7 @@
 #load library
 library(readr)
 library(ggplot2)
+library(tidyverse)
 library(cowplot)
 
 #load data ====================================================================
@@ -111,24 +112,73 @@ dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22
 
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
+#Specify some useful variables and functions
+color.n = c("#FF64B0", 
+           "#F564E3", 
+           "#C77CFF", 
+           "#619CFF", 
+           "#00B4F0", 
+           "#FFFFFF", 
+           "#00C08B", 
+           "#00BA38", 
+           "#7CAE00", 
+           "#B79F00", 
+           "#DE8C00",
+           "#F8766D")
+
 # Analysis
 # Fråga 1 =====================================================================
 # Vilken kategori av ljud, presenterad från vilken ljudgivare används för ljudberikning av personer med tinnitus
 
-#Grupperad stapel?
-table(dat$sleep.lb)
-table(dat$sleep.lb.type)
-table(dat$sleep.lb.type.sum)
+#Check crosstables
+table(dat$sleep.lb.type, dat$sleep.lb.source)
+table(dat$home.lb.type, dat$home.lb.source)
 
-table(dat$home.lb)
-table(dat$home.lb.type)
-table(dat$home.lb.type.sum)
+#Count combinations into new data frames
+sleep.cc <- dat %>%
+              group_by(sleep.lb.type, sleep.lb.source) %>%
+              summarise(count = n())
+
+home.cc <- dat %>%
+              group_by(home.lb.type, home.lb.source) %>%
+              summarise(count = n())
+
+#Omit NA from new data frames
+sleep.cc <- na.omit(sleep.cc)
+home.cc <- na.omit(home.cc)
+
+# Stacked bars. NB!! - hardcoded colors to match
+sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source)) + 
+  geom_bar(position="stack", stat="identity")+
+  #scale_fill_brewer(palette="Dark2")+
+  scale_fill_manual(values=c(color.n[7], color.n[8], color.n[1], color.n[4], color.n[3]))+
+  xlab("Ljudkälla")+
+  ylab("Antal")+
+  ggtitle("Ljudkälla & ljudtyp vid insomning")+
+  theme_minimal()+
+  theme(text = element_text(size = 20), plot.title = element_text(hjust = 0.5, size = 20))+
+  guides(fill=guide_legend(title="Ljudtyp"))
+
+home.bar <- ggplot(home.cc, aes(fill=home.lb.type, y=count, x=home.lb.source)) + 
+  geom_bar(position="stack", stat="identity")+
+  #scale_fill_brewer(palette="Dark2")+
+  scale_fill_manual(values=c(color.n[7], color.n[1], color.n[4], color.n[3]))+
+  xlab("Ljudkälla")+
+  ylab("Antal")+
+  ggtitle("Ljudkälla & ljudtyp i hemmiljö")+
+  theme_minimal()+
+  theme(text = element_text(size = 20), plot.title = element_text(hjust = 0.5, size = 20))+
+  guides(fill=guide_legend(title="Ljudtyp"))
+
+plot_grid(sleep.bar, home.bar,
+          ncol = 2, nrow = 1, labels = c())
 
 # Fråga 2 =====================================================================
 # Finns det samband mellan högre/lägre besvärsgrad och användning av ljudberikning? 
 
-# Test..
+# Test..?
 t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+
 t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
 
 #Create plots
