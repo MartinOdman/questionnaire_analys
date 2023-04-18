@@ -3,14 +3,11 @@
 library(readr)
 library(ggplot2)
 library(tidyverse)
+library(arsenal)
 library(cowplot)
 
 #load data ====================================================================
 dat <- read_csv("data/Datamall.csv")
-
-#Create functions
-BinToDec <- function(x) 
-  sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
 
 #Clean up data
 dat[dat$F2 == 1963, names(dat) == "F2"] <- 2023-1963 #Change birthyear to age
@@ -74,6 +71,7 @@ dat$F29 <- factor(dat$F29, levels = c(1,2,3,4,5,6), labels = c("speaker", "headp
 
 #Rename variables
 names(dat)[names(dat) == "F1"] <- "sex"
+names(dat)[names(dat) == "F2"] <- "age"
 names(dat)[names(dat) == "F3"] <- "hearing"
 names(dat)[names(dat) == "F4"] <- "device"
 names(dat)[names(dat) == "F5"] <- "whatdevice"
@@ -113,6 +111,10 @@ dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
 #Specify some useful variables and functions
+
+BinToDec <- function(x) 
+  sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
+
 color.n = c("#FF64B0", 
            "#F564E3", 
            "#C77CFF", 
@@ -125,6 +127,11 @@ color.n = c("#FF64B0",
            "#B79F00", 
            "#DE8C00",
            "#F8766D")
+
+#Descriptives =================================================================
+
+tab1 <- tableby(sex ~ device + age + hearing + tin.con.occ, data = dat)
+summary(tab1, text = TRUE)
 
 # Analysis
 # Fråga 1 =====================================================================
