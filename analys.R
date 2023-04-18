@@ -1,5 +1,5 @@
 
-#load library
+#load library =================================================================
 library(readr)
 library(ggplot2)
 library(tidyverse)
@@ -131,7 +131,10 @@ color.n = c("#FF64B0",
 #Descriptives =================================================================
 
 tab1 <- tableby(sex ~ device + age + hearing + tin.con.occ, data = dat)
-summary(tab1, text = TRUE)
+summary(tab1, text = TRUE, test = FALSE)
+
+arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
+                    quiet = TRUE)
 
 # Analysis
 # Fråga 1 =====================================================================
