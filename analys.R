@@ -7,7 +7,9 @@ library(arsenal)
 library(cowplot)
 
 #load data ====================================================================
-dat <- read_csv("data/Datamall.csv")
+#dat <- read_csv("data/Data4.csv")
+
+dat <- read_delim("data/Data4.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 #Clean up data
 dat[dat$F2 == 1963, names(dat) == "F2"] <- 2023-1963 #Change birthyear to age
@@ -55,7 +57,7 @@ dat$F10 <- factor(dat$F10, levels = c(1,2), labels = c("constant", "occasional")
 dat$F11 <- factor(dat$F11, levels = c(1,2,3,4,5,6,7,8,9), labels = c("R", "L", "BothR", "BothL", "Both", "Head", "Other", "dk", "multiple" ), exclude = 999)
 dat$F12 <- factor(dat$F12, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
 dat$F13 <- factor(dat$F13, levels = c(1,2,3,4,5,6), labels = c("tone", "noise", "music", "crickets", "other", "multiple"), exclude = 999)
-dat$F14 <- factor(dat$F14, levels = c(1,2,3,4), labels = c("High", "Mid", "Low", "dk"))
+dat$F14 <- factor(dat$F14, levels = c(1,2,3,4, 5), labels = c("High", "Mid", "Low", "dk", "multiple"))
 dat$F15 <- factor(dat$F15, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
 dat$F16 <- factor(dat$F16, levels = c(1,2,3,4,5), labels = c("Never", "Seldom", "Sometimes", "Usually", "Always"), exclude = 999)
 dat$F17 <- factor(dat$F17, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
@@ -130,7 +132,7 @@ color.n = c("#FF64B0",
 
 #Descriptives =================================================================
 
-tab1 <- tableby(sex ~ device + age + hearing + tin.con.occ, data = dat)
+tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
 summary(tab1, text = TRUE, test = FALSE)
 
 arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
@@ -164,8 +166,8 @@ home.cc <- na.omit(home.cc)
 # Stacked bars. NB!! - hardcoded colors to match
 sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source)) + 
   geom_bar(position="stack", stat="identity")+
-  #scale_fill_brewer(palette="Dark2")+
-  scale_fill_manual(values=c(color.n[7], color.n[8], color.n[1], color.n[4], color.n[3]))+
+  scale_fill_brewer(palette="YlGnBu")+
+  #scale_fill_manual(values=c(color.n[7], color.n[8], color.n[1], color.n[4], color.n[3]))+
   xlab("Ljudkälla")+
   ylab("Antal")+
   ggtitle("Ljudkälla & ljudtyp vid insomning")+
@@ -175,8 +177,8 @@ sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source
 
 home.bar <- ggplot(home.cc, aes(fill=home.lb.type, y=count, x=home.lb.source)) + 
   geom_bar(position="stack", stat="identity")+
-  #scale_fill_brewer(palette="Dark2")+
-  scale_fill_manual(values=c(color.n[7], color.n[1], color.n[4], color.n[3]))+
+  scale_fill_brewer(palette="YlGnBu")+
+  #scale_fill_manual(values=c(color.n[7], color.n[1], color.n[4], color.n[3]))+
   xlab("Ljudkälla")+
   ylab("Antal")+
   ggtitle("Ljudkälla & ljudtyp i hemmiljö")+
