@@ -112,6 +112,8 @@ dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22
 
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
+dat$tin.dur <- 2023 - as.integer(substr(dat$first.tin.date,1,4))
+
 #Specify some useful variables and functions
 
 BinToDec <- function(x) 
@@ -132,7 +134,7 @@ color.n = c("#FF64B0",
 
 #Descriptives =================================================================
 
-tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
+tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.lat + tin.pitch + tin.dur + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
 summary(tab1, text = TRUE, test = FALSE)
 
 arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
