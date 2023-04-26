@@ -119,6 +119,7 @@ dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_
 
 #Tinnitus duration in months
 dat$tin.dur.months <- interval(dat$first.tin.date, "2023-04-26") %/% months(1)
+dat$tin.dur.years <- interval(dat$first.tin.date, "2023-04-26") %/% years(1)
 
 dat$tin.dur <- 2023 - as.integer(substr(dat$first.tin.date,1,4))
 
@@ -141,9 +142,14 @@ textsz = 26
 
 tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.dur.months + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
 
+tab1y <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.dur.years + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
+
 summary(tab1, text = TRUE, test = FALSE)
 
 arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
+                    quiet = TRUE)
+
+arsenal::write2word(tab1y, "descriptives_arsenal_y.docx", title = "My table",
                     quiet = TRUE)
 
 # Analysis
