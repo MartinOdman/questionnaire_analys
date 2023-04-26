@@ -8,14 +8,11 @@ library(cowplot)
 library(lubridate)
 library(viridis)
 library(writexl)
-library(extrafont)
-
-loadfonts(device = "win")
 
 #load data ====================================================================
 #dat <- read_csv("data/Data4.csv")
 
-dat <- read_delim("data/Data4.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
+dat <- read_delim("data/DataFINAL.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
 
 #Clean up data
 dat[dat$F2 == 1963, names(dat) == "F2"] <- 2023-1963 #Change birthyear to age
@@ -68,11 +65,11 @@ dat$F15 <- factor(dat$F15, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exc
 dat$F16 <- factor(dat$F16, levels = c(1,2,3,4,5), labels = c("Never", "Seldom", "Sometimes", "Usually", "Always"), exclude = 999)
 dat$F17 <- factor(dat$F17, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
 
-dat$F21 <- factor(dat$F21, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
+dat$F21 <- factor(dat$F21, levels = c(1,2), labels = c("Ja", "Nej"), exclude = 999)
 dat$F22 <- factor(dat$F22, levels = c(1,2,3,4,5,6,7), labels = c("Brus", "Natur", "Omvärld", "Musik", "Tal", "Övrigt", "Flera"), exclude = 999)
 dat$F23 <- factor(dat$F23, levels = c(1,2,3,4,5,6), labels = c("Högtalare", "Hörlur", "HA", "Ljudgenerator", "Övrigt", "Flera"), exclude = 999)
 
-dat$F27 <- factor(dat$F27, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
+dat$F27 <- factor(dat$F27, levels = c(1,2), labels = c("Ja", "Nej"), exclude = 999)
 dat$F28 <- factor(dat$F28, levels = c(1,2,3,4,5,6,7), labels = c("Brus", "Natur", "Omvärld", "Musik", "Tal", "Övrigt", "Flera"), exclude = 999)
 dat$F29 <- factor(dat$F29, levels = c(1,2,3,4,5,6), labels = c("Högtalare", "Hörlur", "HA", "Ljudgenerator", "Övrigt", "Flera"), exclude = 999)
 
@@ -138,6 +135,8 @@ dat <- dat %>%
 BinToDec <- function(x) 
   sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
 
+textsz = 26
+
 #Descriptives =================================================================
 
 tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.dur.months + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
@@ -181,7 +180,7 @@ sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source
   ylab("Antal")+
   ggtitle("Insomning")+
   theme_minimal()+
-  theme(text = element_text(size = 24), plot.title = element_text(hjust = 0.5, size = 30))+
+  theme(text = element_text(size = textsz), plot.title = element_text(hjust = 0.5, size = 34))+
   guides(fill=guide_legend(title="Ljudtyp"))
 
 home.bar <- ggplot(home.cc, aes(fill=home.lb.type, y=count, x=home.lb.source)) + 
@@ -192,7 +191,7 @@ home.bar <- ggplot(home.cc, aes(fill=home.lb.type, y=count, x=home.lb.source)) +
   ylab("Antal")+
   ggtitle("Hemmiljö")+
   theme_minimal()+
-  theme(text = element_text(size = 24), plot.title = element_text(hjust = 0.5, size = 30))+
+  theme(text = element_text(size = textsz), plot.title = element_text(hjust = 0.5, size = 34))+
   guides(fill=guide_legend(title="Ljudtyp"))
 
 plot_grid(sleep.bar, home.bar,
@@ -207,59 +206,59 @@ plot_grid(sleep.bar, home.bar,
 t.res <- matrix(NA,6,8)
 
 #tests
-home.an.t <- t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
-home.aw.t <- t.test(subset(dat$home.aw, dat$home.lb == "Yes"), subset(dat$home.aw, dat$home.lb == "No"))
-home.lo.t <- t.test(subset(dat$home.lo, dat$home.lb == "Yes"), subset(dat$home.lo, dat$home.lb == "No"))
+home.an.t <- t.test(subset(dat$home.an, dat$home.lb == "Ja"), subset(dat$home.an, dat$home.lb == "Nej"))
+home.aw.t <- t.test(subset(dat$home.aw, dat$home.lb == "Ja"), subset(dat$home.aw, dat$home.lb == "Nej"))
+home.lo.t <- t.test(subset(dat$home.lo, dat$home.lb == "Ja"), subset(dat$home.lo, dat$home.lb == "Nej"))
 
-sleep.an.t <- t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
-sleep.aw.t <- t.test(subset(dat$sleep.aw, dat$sleep.lb == "Yes"), subset(dat$sleep.aw, dat$sleep.lb == "No"))
-sleep.lo.t <- t.test(subset(dat$sleep.lo, dat$sleep.lb == "Yes"), subset(dat$sleep.lo, dat$sleep.lb == "No"))
+sleep.an.t <- t.test(subset(dat$sleep.an, dat$sleep.lb == "Ja"), subset(dat$sleep.an, dat$sleep.lb == "Nej"))
+sleep.aw.t <- t.test(subset(dat$sleep.aw, dat$sleep.lb == "Ja"), subset(dat$sleep.aw, dat$sleep.lb == "Nej"))
+sleep.lo.t <- t.test(subset(dat$sleep.lo, dat$sleep.lb == "Ja"), subset(dat$sleep.lo, dat$sleep.lb == "Nej"))
 
 #write to matrix
-t.res[1,1] <- mean(subset(dat$sleep.an, dat$home.lb == "Yes"))
-t.res[1,2] <- sd(subset(dat$sleep.an, dat$home.lb == "Yes"))
-t.res[1,3] <- mean(subset(dat$sleep.an, dat$home.lb == "No"))
-t.res[1,4] <- sd(subset(dat$sleep.an, dat$home.lb == "No"))
+t.res[1,1] <- mean(subset(dat$sleep.an, dat$home.lb == "Ja"))
+t.res[1,2] <- sd(subset(dat$sleep.an, dat$home.lb == "Ja"))
+t.res[1,3] <- mean(subset(dat$sleep.an, dat$home.lb == "Nej"))
+t.res[1,4] <- sd(subset(dat$sleep.an, dat$home.lb == "Nej"))
 t.res[1,5] <- sleep.an.t$statistic
 t.res[1,6] <- sleep.an.t$parameter
 t.res[1,7] <- sleep.an.t$p.value
 
-t.res[2,1] <- mean(subset(dat$sleep.aw, dat$home.lb == "Yes"))
-t.res[2,2] <- sd(subset(dat$sleep.aw, dat$home.lb == "Yes"))
-t.res[2,3] <- mean(subset(dat$sleep.aw, dat$home.lb == "No"))
-t.res[2,4] <- sd(subset(dat$sleep.aw, dat$home.lb == "No"))
+t.res[2,1] <- mean(subset(dat$sleep.aw, dat$home.lb == "Ja"))
+t.res[2,2] <- sd(subset(dat$sleep.aw, dat$home.lb == "Ja"))
+t.res[2,3] <- mean(subset(dat$sleep.aw, dat$home.lb == "Nej"))
+t.res[2,4] <- sd(subset(dat$sleep.aw, dat$home.lb == "Nej"))
 t.res[2,5] <- sleep.aw.t$statistic
 t.res[2,6] <- sleep.aw.t$parameter
 t.res[2,7] <- sleep.aw.t$p.value
 
-t.res[3,1] <- mean(subset(dat$sleep.lo, dat$home.lb == "Yes"))
-t.res[3,2] <- sd(subset(dat$sleep.lo, dat$home.lb == "Yes"))
-t.res[3,3] <- mean(subset(dat$sleep.lo, dat$home.lb == "No"))
-t.res[3,4] <- sd(subset(dat$sleep.lo, dat$home.lb == "No"))
+t.res[3,1] <- mean(subset(dat$sleep.lo, dat$home.lb == "Ja"))
+t.res[3,2] <- sd(subset(dat$sleep.lo, dat$home.lb == "Ja"))
+t.res[3,3] <- mean(subset(dat$sleep.lo, dat$home.lb == "Nej"))
+t.res[3,4] <- sd(subset(dat$sleep.lo, dat$home.lb == "Nej"))
 t.res[3,5] <- sleep.lo.t$statistic
 t.res[3,6] <- sleep.lo.t$parameter
 t.res[3,7] <- sleep.lo.t$p.value
 
-t.res[4,1] <- mean(subset(dat$home.an, dat$home.lb == "Yes"))
-t.res[4,2] <- sd(subset(dat$home.an, dat$home.lb == "Yes"))
-t.res[4,3] <- mean(subset(dat$home.an, dat$home.lb == "No"))
-t.res[4,4] <- sd(subset(dat$home.an, dat$home.lb == "No"))
+t.res[4,1] <- mean(subset(dat$home.an, dat$home.lb == "Ja"))
+t.res[4,2] <- sd(subset(dat$home.an, dat$home.lb == "Ja"))
+t.res[4,3] <- mean(subset(dat$home.an, dat$home.lb == "Nej"))
+t.res[4,4] <- sd(subset(dat$home.an, dat$home.lb == "Nej"))
 t.res[4,5] <- home.an.t$statistic
 t.res[4,6] <- home.an.t$parameter
 t.res[4,7] <- home.an.t$p.value
 
-t.res[5,1] <- mean(subset(dat$home.aw, dat$home.lb == "Yes"))
-t.res[5,2] <- sd(subset(dat$home.aw, dat$home.lb == "Yes"))
-t.res[5,3] <- mean(subset(dat$home.aw, dat$home.lb == "No"))
-t.res[5,4] <- sd(subset(dat$home.aw, dat$home.lb == "No"))
+t.res[5,1] <- mean(subset(dat$home.aw, dat$home.lb == "Ja"))
+t.res[5,2] <- sd(subset(dat$home.aw, dat$home.lb == "Ja"))
+t.res[5,3] <- mean(subset(dat$home.aw, dat$home.lb == "Nej"))
+t.res[5,4] <- sd(subset(dat$home.aw, dat$home.lb == "Nej"))
 t.res[5,5] <- home.aw.t$statistic
 t.res[5,6] <- home.aw.t$parameter
 t.res[5,7] <- home.aw.t$p.value
 
-t.res[6,1] <- mean(subset(dat$home.lo, dat$home.lb == "Yes"))
-t.res[6,2] <- sd(subset(dat$home.lo, dat$home.lb == "Yes"))
-t.res[6,3] <- mean(subset(dat$home.lo, dat$home.lb == "No"))
-t.res[6,4] <- sd(subset(dat$home.lo, dat$home.lb == "No"))
+t.res[6,1] <- mean(subset(dat$home.lo, dat$home.lb == "Ja"))
+t.res[6,2] <- sd(subset(dat$home.lo, dat$home.lb == "Ja"))
+t.res[6,3] <- mean(subset(dat$home.lo, dat$home.lb == "Nej"))
+t.res[6,4] <- sd(subset(dat$home.lo, dat$home.lb == "Nej"))
 t.res[6,5] <- home.lo.t$statistic
 t.res[6,6] <- home.lo.t$parameter
 t.res[6,7] <- home.lo.t$p.value
@@ -292,7 +291,7 @@ an.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) +
   ylab("Tinnitus Annoyance (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
 
@@ -304,7 +303,7 @@ aw.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) +
   ylab("Tinnitus Awareness (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
 
@@ -316,7 +315,7 @@ lo.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) +
   ylab("Tinnitus Loudness (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
   #guides(fill=guide_legend(title=NULL))+
@@ -333,7 +332,7 @@ an.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.an, f
   ylab("Tinnitus Annoyance (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
 
@@ -345,7 +344,7 @@ aw.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.aw, f
   ylab("Tinnitus Awareness (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
 
@@ -357,10 +356,10 @@ lo.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.lo, f
   ylab("Tinnitus Loudness (NRS)")+
   ylim(0,100)+
   theme_minimal()+
-  theme(legend.position="none", text = element_text(size = 20),
+  theme(legend.position="none", text = element_text(size = textsz),
         panel.grid.major = element_line(colour = "#cecece"),
         panel.grid.minor = element_line(colour = "#e2e2e2"))
-#guides(fill=guide_legend(title=NULL))+
+guides(fill=guide_legend(title=NULL))+
 #scale_fill_manual(values=c("#7FC97F", "#BEAED4"), 
 #                 name="Använder ljudberikning",
 #                breaks=c("Yes", "No"),
@@ -369,6 +368,20 @@ lo.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.lo, f
 plot_grid(an.sleep.plot, aw.sleep.plot, lo.sleep.plot, 
           an.home.plot, aw.home.plot, lo.home.plot, 
           ncol = 3, nrow = 2, labels = c("A", "B", "C", "D", "E", "F"))
+
+#Plot for legend ==============================================================
+ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.lo, fill = home.lb)) + 
+  geom_boxplot(lwd = 0.75) +
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
+  xlab("")+
+  ylab("Tinnitus Loudness (NRS)")+
+  ylim(0,100)+
+  theme_minimal()+
+  theme(text = element_text(size = textsz),
+        panel.grid.major = element_line(colour = "#cecece"),
+        panel.grid.minor = element_line(colour = "#e2e2e2"))+
+guides(fill=guide_legend(title="Använder ljudberikning"))
 
 # Fråga 3 =====================================================================
 # Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
