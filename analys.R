@@ -5,6 +5,12 @@ library(ggplot2)
 library(tidyverse)
 library(arsenal)
 library(cowplot)
+library(lubridate)
+library(viridis)
+library(writexl)
+library(extrafont)
+
+loadfonts(device = "win")
 
 #load data ====================================================================
 #dat <- read_csv("data/Data4.csv")
@@ -63,13 +69,12 @@ dat$F16 <- factor(dat$F16, levels = c(1,2,3,4,5), labels = c("Never", "Seldom", 
 dat$F17 <- factor(dat$F17, levels = c(1,2,3), labels = c("Yes", "No", "dk"), exclude = 999)
 
 dat$F21 <- factor(dat$F21, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
-dat$F22 <- factor(dat$F22, levels = c(1,2,3,4,5,6,7), labels = c("noise", "nature", "surrounding", "music", "speech", "other", "multiple"), exclude = 999)
-dat$F23 <- factor(dat$F23, levels = c(1,2,3,4,5,6), labels = c("speaker", "headphone", "ha", "soundgen", "other", "multiple"), exclude = 999)
+dat$F22 <- factor(dat$F22, levels = c(1,2,3,4,5,6,7), labels = c("Brus", "Natur", "Omvärld", "Musik", "Tal", "Övrigt", "Flera"), exclude = 999)
+dat$F23 <- factor(dat$F23, levels = c(1,2,3,4,5,6), labels = c("Högtalare", "Hörlur", "HA", "Ljudgenerator", "Övrigt", "Flera"), exclude = 999)
 
 dat$F27 <- factor(dat$F27, levels = c(1,2), labels = c("Yes", "No"), exclude = 999)
-dat$F28 <- factor(dat$F28, levels = c(1,2,3,4,5,6,7), labels = c("noise", "nature", "surrounding", "music", "speech", "other", "multiple"), exclude = 999)
-dat$F29 <- factor(dat$F29, levels = c(1,2,3,4,5,6), labels = c("speaker", "headphone", "ha", "soundgen", "other", "multiple"), exclude = 999)
-
+dat$F28 <- factor(dat$F28, levels = c(1,2,3,4,5,6,7), labels = c("Brus", "Natur", "Omvärld", "Musik", "Tal", "Övrigt", "Flera"), exclude = 999)
+dat$F29 <- factor(dat$F29, levels = c(1,2,3,4,5,6), labels = c("Högtalare", "Hörlur", "HA", "Ljudgenerator", "Övrigt", "Flera"), exclude = 999)
 
 #Rename variables
 names(dat)[names(dat) == "F1"] <- "sex"
@@ -105,34 +110,35 @@ names(dat)[names(dat) == "F28"] <- "home.lb.type"
 names(dat)[names(dat) == "F29"] <- "home.lb.source"
 
 #Create new variables =========================================================
+
+#sum and recode of laterality
 dat$tin.lat.sum <- dat$F11_1 + dat$F11_2 + dat$F11_3 + dat$F11_4 + dat$F11_5 + dat$F11_6 + dat$F11_7 + dat$F11_8
 dat$tin.lat.recode <- (paste(dat$F11_1, dat$F11_2, dat$F11_3, dat$F11_4, dat$F11_5, dat$F11_6, dat$F11_7, dat$F11_8, sep=""))
 
+#Sum of tinnitus type sleep
 dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22_5 + dat$F22_6
 
+#Sum of tinnitus type home
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
-#Specify some useful variables and functions
+#Tinnitus duration in months
+dat$tin.dur.months <- interval(dat$first.tin.date, "2023-04-26") %/% months(1)
 
+#Ha use months
+dat$device.dur.months <- interval(dat$ha.date, "2023-04-26") %/% months(1)
+
+#Specify HA-user and none HA-user
+dat <- dat %>%
+  mutate(HA.user = case_when(device == "Happ" & device.dur.months >= 6 & ha.use.days >= 5 & ha.hours.day >= 6 ~ 'Happ.user',
+                          device == 'None' ~ 'No.device'))
+
+#Specify useful function for "multiple" combinations
 BinToDec <- function(x) 
   sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
 
-color.n = c("#FF64B0", 
-           "#F564E3", 
-           "#C77CFF", 
-           "#619CFF", 
-           "#00B4F0", 
-           "#FFFFFF", 
-           "#00C08B", 
-           "#00BA38", 
-           "#7CAE00", 
-           "#B79F00", 
-           "#DE8C00",
-           "#F8766D")
-
 #Descriptives =================================================================
 
-tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
+tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.dur.months + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
 summary(tab1, text = TRUE, test = FALSE)
 
 arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
@@ -165,25 +171,25 @@ home.cc <- na.omit(home.cc)
 
 # Stacked bars. NB!! - hardcoded colors to match
 sleep.bar <- ggplot(sleep.cc, aes(fill=sleep.lb.type, y=count, x=sleep.lb.source)) + 
-  geom_bar(position="stack", stat="identity")+
-  scale_fill_brewer(palette="YlGnBu")+
-  #scale_fill_manual(values=c(color.n[7], color.n[8], color.n[1], color.n[4], color.n[3]))+
+  geom_bar(position="stack", stat="identity", color = "black")+
+  #scale_fill_brewer(palette="viridis")+
+  scale_fill_manual(values=c(viridis(7)))+
   xlab("Ljudkälla")+
   ylab("Antal")+
-  ggtitle("Ljudkälla & ljudtyp vid insomning")+
+  ggtitle("Insomning")+
   theme_minimal()+
-  theme(text = element_text(size = 20), plot.title = element_text(hjust = 0.5, size = 20))+
+  theme(text = element_text(size = 24), plot.title = element_text(hjust = 0.5, size = 30))+
   guides(fill=guide_legend(title="Ljudtyp"))
 
 home.bar <- ggplot(home.cc, aes(fill=home.lb.type, y=count, x=home.lb.source)) + 
-  geom_bar(position="stack", stat="identity")+
-  scale_fill_brewer(palette="YlGnBu")+
-  #scale_fill_manual(values=c(color.n[7], color.n[1], color.n[4], color.n[3]))+
+  geom_bar(position="stack", stat="identity", color = "black")+
+  #scale_fill_brewer(palette="YlGnBu")+
+  scale_fill_manual(values=c(viridis(7)))+
   xlab("Ljudkälla")+
   ylab("Antal")+
-  ggtitle("Ljudkälla & ljudtyp i hemmiljö")+
+  ggtitle("Hemmiljö")+
   theme_minimal()+
-  theme(text = element_text(size = 20), plot.title = element_text(hjust = 0.5, size = 20))+
+  theme(text = element_text(size = 24), plot.title = element_text(hjust = 0.5, size = 30))+
   guides(fill=guide_legend(title="Ljudtyp"))
 
 plot_grid(sleep.bar, home.bar,
@@ -192,15 +198,94 @@ plot_grid(sleep.bar, home.bar,
 # Fråga 2 =====================================================================
 # Finns det samband mellan högre/lägre besvärsgrad och användning av ljudberikning? 
 
-# Test..?
-t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+#Create table of t.test
 
-t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
+#Empty matrix
+t.res <- matrix(NA,6,8)
+
+#tests
+home.an.t <- t.test(subset(dat$home.an, dat$home.lb == "Yes"), subset(dat$home.an, dat$home.lb == "No"))
+home.aw.t <- t.test(subset(dat$home.aw, dat$home.lb == "Yes"), subset(dat$home.aw, dat$home.lb == "No"))
+home.lo.t <- t.test(subset(dat$home.lo, dat$home.lb == "Yes"), subset(dat$home.lo, dat$home.lb == "No"))
+
+sleep.an.t <- t.test(subset(dat$sleep.an, dat$sleep.lb == "Yes"), subset(dat$sleep.an, dat$sleep.lb == "No"))
+sleep.aw.t <- t.test(subset(dat$sleep.aw, dat$sleep.lb == "Yes"), subset(dat$sleep.aw, dat$sleep.lb == "No"))
+sleep.lo.t <- t.test(subset(dat$sleep.lo, dat$sleep.lb == "Yes"), subset(dat$sleep.lo, dat$sleep.lb == "No"))
+
+#write to matrix
+t.res[1,1] <- mean(subset(dat$sleep.an, dat$home.lb == "Yes"))
+t.res[1,2] <- sd(subset(dat$sleep.an, dat$home.lb == "Yes"))
+t.res[1,3] <- mean(subset(dat$sleep.an, dat$home.lb == "No"))
+t.res[1,4] <- sd(subset(dat$sleep.an, dat$home.lb == "No"))
+t.res[1,5] <- sleep.an.t$statistic
+t.res[1,6] <- sleep.an.t$parameter
+t.res[1,7] <- sleep.an.t$p.value
+
+t.res[2,1] <- mean(subset(dat$sleep.aw, dat$home.lb == "Yes"))
+t.res[2,2] <- sd(subset(dat$sleep.aw, dat$home.lb == "Yes"))
+t.res[2,3] <- mean(subset(dat$sleep.aw, dat$home.lb == "No"))
+t.res[2,4] <- sd(subset(dat$sleep.aw, dat$home.lb == "No"))
+t.res[2,5] <- sleep.aw.t$statistic
+t.res[2,6] <- sleep.aw.t$parameter
+t.res[2,7] <- sleep.aw.t$p.value
+
+t.res[3,1] <- mean(subset(dat$sleep.lo, dat$home.lb == "Yes"))
+t.res[3,2] <- sd(subset(dat$sleep.lo, dat$home.lb == "Yes"))
+t.res[3,3] <- mean(subset(dat$sleep.lo, dat$home.lb == "No"))
+t.res[3,4] <- sd(subset(dat$sleep.lo, dat$home.lb == "No"))
+t.res[3,5] <- sleep.lo.t$statistic
+t.res[3,6] <- sleep.lo.t$parameter
+t.res[3,7] <- sleep.lo.t$p.value
+
+t.res[4,1] <- mean(subset(dat$home.an, dat$home.lb == "Yes"))
+t.res[4,2] <- sd(subset(dat$home.an, dat$home.lb == "Yes"))
+t.res[4,3] <- mean(subset(dat$home.an, dat$home.lb == "No"))
+t.res[4,4] <- sd(subset(dat$home.an, dat$home.lb == "No"))
+t.res[4,5] <- home.an.t$statistic
+t.res[4,6] <- home.an.t$parameter
+t.res[4,7] <- home.an.t$p.value
+
+t.res[5,1] <- mean(subset(dat$home.aw, dat$home.lb == "Yes"))
+t.res[5,2] <- sd(subset(dat$home.aw, dat$home.lb == "Yes"))
+t.res[5,3] <- mean(subset(dat$home.aw, dat$home.lb == "No"))
+t.res[5,4] <- sd(subset(dat$home.aw, dat$home.lb == "No"))
+t.res[5,5] <- home.aw.t$statistic
+t.res[5,6] <- home.aw.t$parameter
+t.res[5,7] <- home.aw.t$p.value
+
+t.res[6,1] <- mean(subset(dat$home.lo, dat$home.lb == "Yes"))
+t.res[6,2] <- sd(subset(dat$home.lo, dat$home.lb == "Yes"))
+t.res[6,3] <- mean(subset(dat$home.lo, dat$home.lb == "No"))
+t.res[6,4] <- sd(subset(dat$home.lo, dat$home.lb == "No"))
+t.res[6,5] <- home.lo.t$statistic
+t.res[6,6] <- home.lo.t$parameter
+t.res[6,7] <- home.lo.t$p.value
+
+#Correct p-values
+t.res[,8] <- p.adjust(t.res[,7], method = "BH")
+
+#round values
+t.res[,1:6] <- round(t.res[,1:6], 2)
+t.res[,7] <- round(t.res[,7], 4)
+
+#Make df
+t.res <- as.data.frame(t.res)
+
+#name rows and cols
+rownames(t.res) <- c("sleep an", "sleep aw", "sleep lo", "home an", "home aw", "home lo")
+t.res <- cbind(rownames(t.res), data.frame(t.res, row.names=NULL))
+
+colnames(t.res) <- c("Group/NRS" , "Yes - Mean", "Yes - SD", "No - Mean", "No - SD", "t", "df", "p", "p corrected (BH)")
+
+
+#write df to xlsx
+write_xlsx(t.res, "t_test_results.xlsx")
 
 #Create plots
 an.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="viridis")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Annoyance (NRS)")+
   ylim(0,100)+
@@ -211,7 +296,8 @@ an.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.an, fill = sleep.lb)) +
 
 aw.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Awareness (NRS)")+
   ylim(0,100)+
@@ -222,7 +308,8 @@ aw.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.aw, fill = sleep.lb)) +
 
 lo.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Loudness (NRS)")+
   ylim(0,100)+
@@ -238,7 +325,8 @@ lo.sleep.plot <- ggplot(dat, aes(x=sleep.lb, y=sleep.lo, fill = sleep.lb)) +
 
 an.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.an, fill = home.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Annoyance (NRS)")+
   ylim(0,100)+
@@ -249,7 +337,8 @@ an.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.an, f
 
 aw.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.aw, fill = home.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Awareness (NRS)")+
   ylim(0,100)+
@@ -260,7 +349,8 @@ aw.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.aw, f
 
 lo.home.plot <- ggplot(subset(dat, !is.na(home.lb)), aes(x=home.lb, y=home.lo, fill = home.lb)) + 
   geom_boxplot(lwd = 0.75) +
-  scale_fill_brewer(palette="Accent")+
+  #scale_fill_brewer(palette="Accent")+
+  scale_fill_manual(values=c(viridis(7)[4], viridis(7)[7]))+
   xlab("")+
   ylab("Tinnitus Loudness (NRS)")+
   ylim(0,100)+
@@ -280,9 +370,11 @@ plot_grid(an.sleep.plot, aw.sleep.plot, lo.sleep.plot,
 
 # Fråga 3 =====================================================================
 # Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
-table(dat$device, dat$sleep.lb)
-chisq.test(dat$device, dat$sleep.lb)
 
-table(dat$device, dat$home.lb)
-chisq.test(dat$device, dat$home.lb)
+#table and Chi Square test
+table(dat$HA.user, dat$sleep.lb)
+chisq.test(dat$HA.user, dat$sleep.lb)
+
+table(dat$HA.user, dat$home.lb)
+chisq.test(dat$HA.user, dat$home.lb)
 
