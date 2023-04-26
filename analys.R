@@ -121,8 +121,14 @@ dat$sleep.lb.type.sum <- dat$F22_1 + dat$F22_2 + dat$F22_3 + dat$F22_4 + dat$F22
 #Sum of tinnitus type home
 dat$home.lb.type.sum <- dat$F28_1 + dat$F28_2 + dat$F28_3 + dat$F28_4 + dat$F28_5 + dat$F28_6
 
+<<<<<<< HEAD
 #Tinnitus duration in months
 dat$tin.dur.months <- interval(dat$first.tin.date, "2023-04-26") %/% months(1)
+=======
+dat$tin.dur <- 2023 - as.integer(substr(dat$first.tin.date,1,4))
+
+#Specify some useful variables and functions
+>>>>>>> abd54175d2b7095a017c3207bf6ace33cc24aed7
 
 #Ha use months
 dat$device.dur.months <- interval(dat$ha.date, "2023-04-26") %/% months(1)
@@ -138,7 +144,11 @@ BinToDec <- function(x)
 
 #Descriptives =================================================================
 
+<<<<<<< HEAD
 tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.dur.months + tin.lat + tin.pitch + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
+=======
+tab1 <- tableby(sex ~ age + hearing + device + tin.con.occ + tin.lat + tin.pitch + tin.dur + tin.loud.varies + tin.reduce.env + sound.tolerance + sound.worse.tin, data = dat)
+>>>>>>> abd54175d2b7095a017c3207bf6ace33cc24aed7
 summary(tab1, text = TRUE, test = FALSE)
 
 arsenal::write2word(tab1, "descriptives_arsenal.docx", title = "My table",
