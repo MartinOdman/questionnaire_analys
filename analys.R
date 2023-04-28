@@ -393,9 +393,14 @@ guides(fill=guide_legend(title="Använder ljudberikning"))
 # Skillnader mellan hur personer med tin och tin+ha använder sig av ljudberikning
 
 #table and Chi Square test
+par(mfrow=c(1,2))
+
 table(dat$HA.user, dat$sleep.lb)
-chisq.test(dat$HA.user, dat$sleep.lb)
+fisher.test(dat$HA.user, dat$sleep.lb)
+sleep.mosaic <- mosaicplot(table(dat$HA.user, dat$sleep.lb), main = "Insomning", color = TRUE, xlab = "Använder apparat?", ylab = "Använder ljudberikning?")
 
 table(dat$HA.user, dat$home.lb)
-chisq.test(dat$HA.user, dat$home.lb)
+fisher.test(dat$HA.user, dat$home.lb)
+home.mosaic <- mosaicplot(table(dat$HA.user, dat$home.lb), main = "Hemmiljö", color = TRUE, xlab = "Använder apparat?", ylab = "Använder ljudberikning?")
+
 
